@@ -1,0 +1,154 @@
+<script src="//ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.4.2/mapbox-gl-geocoder.min.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.4.2/mapbox-gl-geocoder.css" type="text/css">
+<div class="product-custom-switcher-box">
+  <div class="product-custom-switcher">
+  <div class="custom-switcher-btn coords-btn active-switcher">
+    <labels>ENGRAVE COORDINATES</labels>
+  </div>
+  <div class="custom-switcher-btn text-btn">
+    <labels>ENGRAVE TEXT</labels>
+  </div>
+</div>
+<div class="custom-switcher-content-wrapper">
+  <div class="custom-switcher-content coordinates-variant">
+    <div class="maps-input-group special-input">
+      <label>Lookup your Location</label>
+      <div id="search">
+        <div id="geocoder"></div>
+        <button id="findLocationBtn" type="button" onclick="findLocation()">FIND</button>
+      </div>
+      <p id="noResult" style="color: red;"></p>
+      <table id="addressTable"></table>
+    </div>
+    <div class="maps-input-group special-group-display">
+      <div class="line-item-property__field maps-latitude">
+        <label for="latitude">Your Coordinates</label>
+        <input id="latitude" type="text" name="properties[Latitude]" placeholder="-8.3692° S">
+      </div>
+      <div class="line-item-property__field maps-longitude">
+        <input id="longtitude" type="text" name="properties[Longitude]" placeholder="115.1383° E">
+      </div>
+    </div>
+    <label class="toggle">
+      <input id="map-lock-input" type="checkbox"/>
+      <span class="slider">
+        Click to
+        <span data-text="lock">lock</span>
+        <span data-text="unlock">Unlock</span>
+        Map
+      </span>
+    </label>
+    <div id="map"></div>
+    <p style="text-align: center; font-size: 10px;">Are you trying to find the coordinates off a location that doesn't have an address? Move the map and tap to drop the pin anywhere.</p>
+  </div>
+  <div class="custom-switcher-content engrave-text-cont" style="display: none;"></div>
+  </div>
+</div>
+<style type="text/css">
+#lat,#lon{text-align:right}input.mapboxgl-ctrl-geocoder--input{margin:0;border:none!important;height:40px;font-size:14px;line-height:20px!important}.mapboxgl-ctrl-geocoder--icon-close{margin-top:0}.mapboxgl-ctrl-geocoder--suggestion{line-height:normal;text-align:left}.mapboxgl-ctrl-geocoder--button{background:0 0!important;width:30px!important;top:0!important;height:40px!important;line-height:22px!important}.mapboxgl-ctrl-bottom-left,.mapboxgl-ctrl-bottom-right{display:none}div#map{width:100%;height:250px;border-radius:5px;overflow:hidden}#geocoder-container>div{min-width:50%;margin-left:25%}div#search{display:flex;max-width:650px}div#geocoder{width:80%;z-index:1000}@media screen and (min-width:640px){.mapboxgl-ctrl-geocoder--icon-close{margin-top:0!important}}#search button{background:#559769;line-height:42px;margin-bottom:0;height:46px;border:0;color:#fff;letter-spacing:1px}input#addressInput{width:80%;margin-bottom:0;font-size:10px!important;-webkit-appearance:none;text-transform:unset;line-height:20px}header.coverheader{z-index:9999}.maps-input-group label{display:block;line-height:2.5;font-size:12px;font-weight:700;color:#6c6c6c;margin-bottom:0;text-align:left;text-transform:uppercase}.maps-input-group{display:flex}.line-item-property__field.maps-latitude{width:calc(50% - 2.5px);margin-right:5px}.line-item-property__field.maps-longitude{width:calc(50% - 2.5px);margin-top:30px}.maps-latitude input,.maps-longitude input{width:100%;border:1px solid #e3e3e3;height:46px;line-height:46px;padding:0;margin:0;margin-bottom:20px;max-width:100%;text-indent:17px;outline:0;font-size:16px;color:#000!important}.maps-latitude input::placeholder,.maps-longitude input::placeholder{color:#000}.maps-input-group.special-input{display:block}.mapbox-solution{width:650px;margin:0 auto;margin-top:50px}.mapboxgl-ctrl-top-right{top:-125px;left:0!important;right:unset;box-sizing:border-box}.mapboxgl-ctrl-top-right input{border-radius:0!important}.mapboxgl-ctrl-geocoder.mapboxgl-ctrl{border-radius:0;box-shadow:unset;border:1px solid #d7caca;margin:0;line-height:38px;box-sizing:border-box;max-width:100%;width:100%;min-width:100%!important}svg.mapboxgl-ctrl-geocoder--icon.mapboxgl-ctrl-geocoder--icon-search{display:none}.mapboxgl-ctrl-geocoder--input{line-height:40px!important;height:46px}.mapboxgl-ctrl-geocoder--suggestion{line-height:normal}.mapboxgl-ctrl-top-right{top:unset;left:10px!important}.mapboxgl-ctrl-group button{margin:0!important}.custom-switcher-btn.active-switcher{background:#e3e3e3}.custom-switcher-btn{text-align:center;font-size:16px;text-transform:uppercase;float:left;padding:10px;border:1px solid #e3e3e3;border-bottom:0;position:relative;background:#fff}.custom-switcher-btn.active-switcher label{color:#000;font-weight:700}.custom-switcher-content-wrapper{border:1px solid #e3e3e3;padding:20px;position:relative;z-index:100;margin-bottom:20px}.custom-switcher-btn.active-switcher{background:#e3e3e3}@media screen and (max-width:600px){.product-custom-switcher-box{padding:20px 6px;background:#fbfafa}.custom-switcher-btn{text-align:center;font-size:12px;text-transform:uppercase;float:left;padding:8px;border:1px solid #e3e3e3;position:relative;background:#fff}.custom-switcher-content-wrapper{border:0 solid #e3e3e3;padding:0;position:relative;z-index:100}}.engrave-text-cont label{display:block;line-height:2.5;font-size:12px;font-weight:700;color:#6c6c6c;margin-bottom:0;text-align:left;text-transform:uppercase}#text-engrave{border:solid 1px #d3d3d3;width:100%;-webkit-appearance:none;text-transform:unset;line-height:20px;font-size:10px;font-weight:300}.up.quantity-control-up{border-left:none!important}#text-engrave::placeholder{color:#777}.toggle input{display:none}.toggle{position:relative;display:block;width:150px;height:42px;margin-left:auto;margin-right:auto;margin-bottom:20px}.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#958a8a;border-radius:21px;transition:all .4s;text-align:center;width:100%;display:block;color:#fff;font-weight:700;font-size:12px;padding:7px 37px;line-height:13px;font-family:Assistant,sans-serif!important}.slider:before{position:absolute;content:"";width:32px;height:32px;left:5px;top:5px;background-color:#fff;border-radius:50%;transition:all .4s}.product-custom-switcher{overflow:hidden}.product-custom-switcher-box{margin:20px 6px}.maps-input-group.special-group-display{margin-top:-24px!important}input:checked+.slider{background-color:#39ca8d}input:checked+.slider:before{transform:translateX(108px)}.toggle .slider span[data-text=lock]{display:none}.toggle #map-lock-input:checked+.slider span[data-text=lock]{display:inline}.toggle #map-lock-input:checked+.slider span[data-text=unlock]{display:none}.toggle .slider span[data-text=lock],.toggle .slider span[data-text=unlock]{font-family:Assistant,sans-serif!important;font-weight:unset}
+</style>
+<script>
+  $(document).ready(function() {
+    $( ".coords-btn" ).click(function() {
+      $('.engrave-text-cont').hide();
+      $('.coordinates-variant').show();
+      $( ".text-btn").removeClass("active-switcher");
+      $( ".coords-btn").addClass("active-switcher");
+      if ( $('.special-group-display').children().length == 0 ) {
+        $('.special-group-display').append('<div class="line-item-property__field maps-latitude"><label for="latitude">Your Coordinates</label><input id="latitude" maxlength="12" type="text" name="properties[Latitude]" placeholder="-8.3692° S"></div><div class="line-item-property__field maps-longitude"><input id="longtitude" maxlength="12" type="text" name="properties[Longitude]" placeholder="115.1383° E"></div>');
+        $('.text-engrave').remove();
+      }
+    });
+    $( ".text-btn" ).click(function() {
+      $('.coordinates-variant').hide();
+      $('.engrave-text-cont').show();
+      $('.maps-latitude, .maps-longitude').remove();
+      $( ".text-btn").addClass("active-switcher");
+      $( ".coords-btn").removeClass("active-switcher");
+      if ( $('.engrave-text-cont').children().length == 0 ) {
+        $('.engrave-text-cont').append('<div class="line-item-property__field text-engrave"><label for="text-engrave">Engrave Text</label><input id="text-engrave" maxlength="20" type="text" name="properties[Text]" placeholder="Insert your text"></div>');
+        $('.coordinates-variant').hide();
+      }
+    });
+  });
+</script>
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoiY3VzdG9tY3VmZiIsImEiOiJjazV6ajJmMnIwMGs0M2xvN2kzeGJ0djhpIn0.Dr_AXBrz97ztCP1DaXZerw';
+  var marker = new mapboxgl.Marker();
+  var map = new mapboxgl.Map({
+    container: 'map', style: 'mapbox://styles/customcuff/ck6j63f0e10w11inyc4c8za4k', center: [115.1383, -8.3692], zoom: 13
+  });
+  map.on('load', function () {
+    geocoder.query('Bali') // or wherever you want the marker to start
+    $("#map").css("pointer-events","none");
+  })
+  function findLocation() {
+    document.querySelector('.mapboxgl-ctrl-geocoder--input').id = 'mapbox-search';
+    document.querySelector('.suggestions').id = 'suggestionsBox';
+    geocoder.query(document.getElementById("mapbox-search").value);
+    document.getElementById("suggestionsBox").style.display = 'none';
+  }
+  var checkbox = document.getElementById("map-lock-input");
+  checkbox.addEventListener( 'change', function() {
+    if(this.checked) { // Checkbox is checked..
+      $("#map").css("pointer-events","auto");
+    } else { // Checkbox is not checked..
+      $("#map").css("pointer-events","none");
+    }
+  });
+  var geocoder = new MapboxGeocoder({
+    accessToken: mapboxgl.accessToken,
+    mode: 'mapbox.places-permanent', // does not provide POI data
+    mapboxgl: mapboxgl
+  });
+  geocoder.on('result', function(ev) {
+    var latString = ev.result.geometry.coordinates[1];
+    var lngString = ev.result.geometry.coordinates[0];
+    $('.mapboxgl-ctrl-geocoder--input').blur();
+    var lat = JSON.stringify(latString);
+    var lng = JSON.stringify(lngString);
+    if (lat > 0) {
+      lat = parseFloat(lat).toFixed(4) + "° N";
+    } else {
+      lat = parseFloat(lat).toFixed(4) + "° S";
+    }
+    if (lng > 0) {
+      lng = parseFloat(lng).toFixed(4) + "° E";
+    } else {
+      lng = parseFloat(lng).toFixed(4) + "° W";
+    }
+    console.log(lat);
+    console.log(lng);
+    document.getElementById('latitude').value = lat;
+    document.getElementById('longtitude').value = lng;
+  });
+  map.on('click', function (e) {
+    if (geocoder.mapMarker) {
+      geocoder.mapMarker.setLngLat(e.lngLat);
+      var lat = JSON.stringify(e.lngLat.lat);
+      var lng = JSON.stringify(e.lngLat.lng);
+      if (lat > 0) {
+        lat = parseFloat(lat).toFixed(4) + "° N";
+      } else {
+        lat = parseFloat(lat).toFixed(4) + "° S";
+      }
+      if (lng > 0) {
+        lng = parseFloat(lng).toFixed(4) + "° E";
+      } else {
+        lng = parseFloat(lng).toFixed(4) + "° W";
+      }
+      console.log(lat);
+      console.log(lng);
+      document.getElementById('latitude').value = lat;
+      document.getElementById('longtitude').value = lng;
+    } else {
+      var marker = new geocoder.mapMarker.setLngLat(e.lngLat);
+      console.log('test');
+    }
+  });
+  map.addControl(new mapboxgl.NavigationControl());
+  document.getElementById('geocoder').appendChild(geocoder.onAdd(map));
+</script>
