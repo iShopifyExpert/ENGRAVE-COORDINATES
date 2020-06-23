@@ -1,0 +1,271 @@
+<div class="product-custom-switcher-box">
+  <div class="product-custom-switcher">
+  <div class="custom-switcher-btn coords-btn active-switcher">
+    <labels>ENGRAVE COORDINATES</labels>
+  </div>
+  <div class="custom-switcher-btn text-btn">
+    <labels>ENGRAVE TEXT</labels>
+  </div>
+</div>
+<div class="custom-switcher-content-wrapper">
+  <div class="custom-switcher-content coordinates-variant">
+    <div class="maps-input-group special-input">
+      <label>Lookup your Location</label>
+      <div id="search">
+        <div id="geocoder"></div>
+        <button id="findLocationBtn" type="button" onclick="findLocation()">FIND</button>
+      </div>
+      <p id="noResult" style="color: red;"></p>
+      <table id="addressTable"></table>
+    </div>
+    <div class="maps-input-group special-group-display">
+      <div class="line-item-property__field maps-latitude">
+        <label for="latitude">Your Coordinates</label>
+        <input id="latitude" type="text" name="properties[Latitude]" placeholder="-8.3692° S">
+      </div>
+      <div class="line-item-property__field maps-longitude">
+        <input id="longtitude" type="text" name="properties[Longitude]" placeholder="115.1383° E">
+      </div>
+    </div>
+    <label class="toggle">
+      <input id="map-lock-input" type="checkbox"/>
+      <span class="slider">
+        Click to
+        <span data-text="lock">lock</span>
+        <span data-text="unlock">Unlock</span>
+        Map
+      </span>
+    </label>
+    <div id="map"></div>
+    <p style="text-align: center; font-size: 10px;">Are you trying to find the coordinates off a location that doesn't have an address? Move the map and tap to drop the pin anywhere.</p>
+  </div>
+  <div class="custom-switcher-content engrave-text-cont" style="display: none;"></div>
+  </div>
+</div>
+<script>
+  mapboxgl.accessToken = '{{settings.mapbox_api}}';
+	var map = new mapboxgl.Map({
+	  container: 'map',
+	  style: 'mapbox://styles/customcuff/ck6j63f0e10w11inyc4c8za4k',
+	  center: [136.0000, 35.0000],
+	  zoom: 13
+	});
+
+	const geolocate = new mapboxgl.GeolocateControl({
+	  positionOptions: {
+	    enableHighAccuracy: true
+	  },
+	  trackUserLocation: true
+	});
+	map.addControl(geolocate);
+
+	map.on('load', function() {
+	  $("#map").css("pointer-events", "none");
+
+	    geocoder.query('{{settings.geocoder_pass}}');
+        
+	});
+
+	geolocate.on('geolocate', function() {
+
+	  //Get the updated user location, this returns a javascript object.
+	  var userlocation = geolocate._lastKnownPosition;
+
+	  var lat = userlocation.coords.latitude;
+	  var lng = userlocation.coords.longitude;
+    console.log('on geolocate', lat, lng)
+	  updateCoordinateInputs(lat, lng)
+
+	});
+
+	function findLocation() {
+	  document.querySelector('.mapboxgl-ctrl-geocoder--input').id = 'mapbox-search';
+	  document.querySelector('.suggestions').id = 'suggestionsBox';
+	  geocoder.query(document.getElementById("mapbox-search").value);
+	  document.getElementById("suggestionsBox").style.display = 'none';
+	}
+	var checkbox = document.getElementById("map-lock-input");
+
+	checkbox.addEventListener('change', function() {
+	  if (this.checked) {
+	    $("#map").css("pointer-events", "auto");
+	  } else {
+	    $("#map").css("pointer-events", "none");
+	  }
+	});
+
+	var geocoder = new MapboxGeocoder({
+	  accessToken: mapboxgl.accessToken,
+	  mode: 'mapbox.places-permanent', // does not provide POI data
+	  mapboxgl: mapboxgl,
+      placeholder: 'Tokyo, Japan'
+	});
+	geocoder.on('result', function(ev) {
+	  var latString = ev.result.geometry.coordinates[1];
+	  var lngString = ev.result.geometry.coordinates[0];
+	  $('.mapboxgl-ctrl-geocoder--input').blur();
+
+	  var lat = JSON.stringify(latString);
+	  var lng = JSON.stringify(lngString);
+    console.log('on geocode result', lat, lng)
+	  updateCoordinateInputs(lat, lng)
+      
+      if (lat == '35.0000' && lng == '136.0000' ) {
+        $(".mapboxgl-ctrl-geocoder--input").attr('placeholder', 'Tokyo, Japan');
+      } else {
+        $(".mapboxgl-ctrl-geocoder--input").attr('placeholder', 'Your special place');
+      }
+	});
+$( window ).on( "load", function() {
+      $('.mapboxgl-ctrl-geocoder--input').val('');
+    });
+	map.on('click', function(e) {
+	  var lat = JSON.stringify(e.lngLat.lat);
+	  var lng = JSON.stringify(e.lngLat.lng);
+    console.log('on map click', lat, lng)
+	  if (geocoder.mapMarker) {
+	    geocoder.mapMarker.setLngLat(e.lngLat);
+	    updateCoordinateInputs(lat, lng)
+	  } else {
+	    var marker = new mapboxgl.Marker()
+	      .setLngLat(e.lngLat)
+	      .addTo(map);
+	    geocoder.mapMarker = marker
+	    updateCoordinateInputs(lat, lng)
+	  }
+
+	});
+
+	function _convertDDToDMS(coordinate) {
+	  var absolute = Math.abs(coordinate);
+	  var degrees = Math.floor(absolute);
+	  var minutesNotTruncated = (absolute - degrees) * 60;
+	  var minutes = Math.floor(minutesNotTruncated);
+	  var seconds = Math.round((minutesNotTruncated - minutes) * 60 * 100) / 100;
+	  if (coordinate < 0) degrees *= -1;
+	  return degrees + "°" + minutes + "'" + seconds.toFixed(2);
+	}
+
+	function convertDDToDMS(lat, lng) {
+	  lat = Number(String(lat).replace(/° \w/, ""))
+	  lng = Number(String(lng).replace(/° \w/, ""))
+	  var latitude = _convertDDToDMS(lat);
+	  var latitudeCardinal = lat > 0 ? "''N" : "''S";
+
+	  var longitude = _convertDDToDMS(lng);
+	  var longitudeCardinal = lng > 0 ? "''E" : "''W";
+
+	  return {
+	    latitude: latitude + latitudeCardinal,
+	    longtitude: longitude + longitudeCardinal
+	  }
+	}
+
+
+	function _convertDMSToDD(degrees, minutes, seconds, direction) {
+	  let dd = Number(degrees) + Number(minutes) / 60 + Number(seconds) / 3600;
+
+	  if (direction == "S" || direction == "W") {
+	    dd = dd * -1;
+	  } // Don't do anything for N or E
+	  return dd.toFixed(4) + "° " + (direction);
+	}
+
+	function convertDMSToDD(lat, lng) {
+	  let latParts = lat.match(/(\d+)°(\d+)'(\d+\.?\d*)''(\w)/)
+	  let longParts = lng.match(/(\d+)°(\d+)'(\d+\.?\d*)''(\w)/)
+	  let latitude = _convertDMSToDD(latParts[1], latParts[2], latParts[3], latParts[4])
+	  let longtitude = _convertDMSToDD(longParts[1], longParts[2], longParts[3], longParts[4])
+	  return {
+	    latitude: latitude,
+	    longtitude: longtitude
+	  }
+	}
+
+	function updateCoordinateInputs(lat, lng) {
+
+	  if (lat > 0) {
+	    lat = parseFloat(lat).toFixed(4) + "° N";
+	  } else {
+	    lat = parseFloat(lat).toFixed(4) + "° S";
+	  }
+	  if (lng > 0) {
+	    lng = parseFloat(lng).toFixed(4) + "° E";
+	  } else {
+	    lng = parseFloat(lng).toFixed(4) + "° W";
+	  }
+
+	  localStorage.setItem("cuffCoordinatesLongitude", lng);
+	  localStorage.setItem("cuffCoordinatesLatitude", lat);
+    
+	  if ($("#dmstoggler").is(":checked")) {
+	    let dms = convertDDToDMS(lat, lng)
+	    lat = dms.latitude
+	    lng = dms.longtitude
+	  }
+	  document.getElementById('latitude').value = lat;
+	  document.getElementById('longtitude').value = lng;
+	}
+  
+  function localStorageGetLng() {
+  	let lng = localStorage.getItem("cuffCoordinatesLongitude");
+    if ($("#dmstoggler").is(":checked")) {
+	    lng = convertDDToDMS(0, lng).longtitude
+	  }
+    return lng
+  }
+  
+  function localStorageGetLat() {
+  	let lat = localStorage.getItem("cuffCoordinatesLatitude");
+    if ($("#dmstoggler").is(":checked")) {
+	    lat = convertDDToDMS(lat, 0).latitude
+	  }
+    return lat
+  }
+
+	$("#dmstoggler").on('change', function(eventInfo) {
+	  let longInput = document.getElementById("longtitude")
+	  let latInput = document.getElementById("latitude")
+
+	  if (eventInfo.target.checked) {
+	    // convert to DMS
+	    let dms = convertDDToDMS(latInput.value, longInput.value)
+	    latInput.value = dms.latitude;
+	    longInput.value = dms.longtitude;
+              localStorage.setItem("cuffCoordinatesLongitude", dms.longtitude);
+	  localStorage.setItem("cuffCoordinatesLatitude", dms.latitude);
+	  } else {
+	    // convert back to decimal degrees
+	    let dd = convertDMSToDD(latInput.value, longInput.value)
+	    latInput.value = dd.latitude
+	    longInput.value = dd.longtitude
+        localStorage.setItem("cuffCoordinatesLongitude", dd.longtitude);
+	  localStorage.setItem("cuffCoordinatesLatitude", dd.latitude);
+	  }
+	  $("#dmstoggler_state").html(eventInfo.target.checked ? "DMS" : "Decimal degrees")
+	})
+
+	map.addControl(new mapboxgl.NavigationControl());
+	document.getElementById('geocoder').appendChild(geocoder.onAdd(map));
+</script>
+
+//Schema settings
+
+,
+  {
+    "name": "MapBox API",
+    "settings": [
+      {
+        "type": "textarea",
+        "id": "mapbox_api",
+        "label": "API Here",
+        "info": "From mapbox.com"
+      },
+      {
+        "type": "text",
+        "id": "geocoder_pass",
+        "label": "Default Location",
+        "info": "Country or City"
+      }
+    ]
+  }
