@@ -1,0 +1,20 @@
+,
+  {
+    "name": "MapBox API",
+    "settings": [
+      {
+        "type": "textarea",
+        "id": "mapbox_api",
+        "label": "API Here",
+        "default": "pk.eyJ1IjoiY3VzdG9tY3VmZiIsImEiOiJja2E2dDA2NzEwM2o3Mnlsb3VpZTRzaHJ1In0.1jwHhauUttaAiSSFIstGkQ",
+        "info": "From mapbox.com"
+      },
+      {
+        "type": "text",
+        "id": "geocoder_pass",
+        "label": "Default Location",
+        "default": "Bali",
+        "info": "Country or City"
+      }
+    ]
+  }
