@@ -1,12 +1,12 @@
 <!-- Load Mapbox from CDN -->
-<script src="//ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<script src="https://api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.js"></script>
-<link href="https://api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.css" rel="stylesheet">
-<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.4.2/mapbox-gl-geocoder.min.js"></script>
-<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.4.2/mapbox-gl-geocoder.css" type="text/css">
+{{ '//ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js' | script_tag }}
+{{ '//api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.js' | script_tag }}
+{{ '//api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.css' | stylesheet_tag }}
+{{ '//api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.4.2/mapbox-gl-geocoder.min.js' | script_tag }}
+{{ '//api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.4.2/mapbox-gl-geocoder.css' | stylesheet_tag }}
 <!-- Promise polyfill script required to use Mapbox GL Geocoder in IE 11 -->
-<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+{{ '//cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js' | script_tag }}
+{{ '//cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js' | script_tag }}
 
 <div class="product-custom-switcher-box">
   <div class="product-custom-switcher">
@@ -621,7 +621,7 @@
   }
   /* On checked */
   input:checked + .slider {
-    background-color: #39ca8d;
+    background-color: #09b50f;
   }
   input:checked + .dmsslider {
     background-color: #000;
