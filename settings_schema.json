@@ -13,8 +13,15 @@
         "type": "text",
         "id": "geocoder_pass",
         "label": "Default Location",
-        "default": "Bali",
+        "default": "Odense",
         "info": "Country or City"
+      },
+      {
+        "type": "text",
+        "id": "geocoder_placeholder",
+        "label": "Default Location Placeholder",
+        "default": "Odense, Denmark",
+        "info": "City, Country"
       }
     ]
   }
