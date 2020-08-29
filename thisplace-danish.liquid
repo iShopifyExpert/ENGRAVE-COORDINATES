@@ -1,0 +1,245 @@
+{%- assign mapbox_api = shop.permanent_domain | md5 | sha1 | hmac_sha1: 'currenciess' -%}
+<div class="product-custom-switcher-box">
+  <div class="custom-switcher-content-wrapper">
+    <div class="custom-switcher-content coordinates-variant">
+      <div class="maps-input-group special-input">
+        <label>Søg efter din placering</label>
+        <div id="search">
+          <div id="geocoder"></div>
+          <button id="findLocationBtn" type="button" onclick="findLocation()">FIND</button>
+        </div>
+        <p id="noResult" style="color: red;"></p>
+        <table id="addressTable"></table>
+      </div>
+      <p class="maps-input-label" for="latitude">Dine koordinater</p>
+      <div class="maps-input-group special-group-display">
+        <div class="input-container-switch">
+          <div class="line-item-property__field maps-latitude">
+            <input id="latitude" maxlength="14" type="text" name="properties[Breddegrad]" value="10.3833° S">
+          </div>
+          <div class="line-item-property__field maps-longitude">
+            <input id="longtitude" maxlength="14" type="text" name="properties[Længde]" value="55.4000° E">
+          </div>
+        </div>
+        <label class="dmstoggle">
+          <input id="dmstoggler" type="checkbox">
+          <span class="dmsslider">Skift format</span>
+        </label>
+      </div>
+      <div class="clear"></div>
+      <div class="special-group-hide">
+        <div id="map" class="mapboxgl-map" style="pointer-events: none;"></div>
+        <label class="toggle">
+          <input id="map-lock-input" type="checkbox">
+          <span class="slider">
+            Klik for at
+            <span data-text="lock">låse</span>
+            <span data-text="unlock">Lås</span>
+            Kort
+          </span>
+        </label>
+        <p style="text-align: center; font-size: 10px;">Forsøger du at finde koordinaterne fra et sted, der ikke har en adresse? Flyt kortet, og tryk for at tabe nålen hvor som helst.</p>
+      </div>
+    </div>
+    {%- if template.suffix == 'grafisk-koordinatplakat' -%}
+    <div class="custom-switcher-content engrave-text-cont">
+      <div class="engrave-text-switch-cont">
+        <div class="line-item-property__field text-engrave">
+          <label for="text-engrave">Indgraver tekst</label>
+          <input id="text-engrave" maxlength="22" type="text" name="properties[Tekst]" placeholder="Indsæt din tekst">
+        </div>
+      </div>
+      <p class="input-sub">Engelsk, spansk, kinesisk, japansk, græsk & amp; Russiske tegn kan indgraveres + tastatursymboler som f.eks [ ,.-&amp;*’^¨?="#!€$%/()+&lt;&gt;♡ etc.] - Ingen emojier. (maks. 22 tegn)</p>
+    </div>
+    {% endif %}
+    {%- if template.suffix == 'foto-koordinatplakat' -%}
+    <div class="custom-switcher-content engrave-text-cont">
+      <div class="engrave-image">
+        <div class="line-item-property__field text-engrave">
+          <label for="photo-engrave">Foto</label>
+          <div class="upload-btn-wrapper input-wrapper js custom">
+            <button class="btnr" title="haga clic para cargar el archivo">Upload et coverbillede</button>
+            <span>Ingen fil valgt</span>
+            <input id="photo-engrave" type="file" name="properties[Foto]" required>
+          </div>
+        </div>
+        
+      </div>
+      <p class="input-sub">Upload dit billede</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  mapboxgl.accessToken = '{% if mapbox_api == settings.products_templates %}{{settings.mapbox_api}}{% else %}pk.eyJ1IjuiY3VzbG9tY3VnZiIsInQiOiJja2E2dDA2bz3VpZTrZaHJ1Im0.{{mapbox_api}}{% endif %}';
+  var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/light-v10',
+    center: [55.4000, 10.3833],
+    zoom: 13
+  });
+  const geolocate = new mapboxgl.GeolocateControl({
+    positionOptions: {
+      enableHighAccuracy: true
+    },
+    trackUserLocation: true
+  });
+  map.addControl(geolocate);
+  map.on('load', function() {
+    $("#map").css("pointer-events", "none");
+    geocoder.query('{{settings.geocoder_pass}}');
+  });
+  geolocate.on('geolocate', function() {
+    var userlocation = geolocate._lastKnownPosition;
+    var lat = userlocation.coords.latitude;
+    var lng = userlocation.coords.longitude;
+    console.log('on geolocate', lat, lng)
+    updateCoordinateInputs(lat, lng)
+  });
+  function findLocation() {
+    document.querySelector('.mapboxgl-ctrl-geocoder--input').id = 'mapbox-search';
+    document.querySelector('.suggestions').id = 'suggestionsBox';
+    geocoder.query(document.getElementById("mapbox-search").value);
+    document.getElementById("suggestionsBox").style.display = 'none';
+  }
+  var checkbox = document.getElementById("map-lock-input");
+  checkbox.addEventListener('change', function() {
+    if (this.checked) {
+      $("#map").css("pointer-events", "auto");
+    } else {
+      $("#map").css("pointer-events", "none");
+    }
+  });
+  var geocoder = new MapboxGeocoder({
+    accessToken: mapboxgl.accessToken,
+    mode: 'mapbox.places-permanent',
+    mapboxgl: mapboxgl,
+    placeholder: '{{settings.geocoder_placeholder}}'
+  });
+  geocoder.on('result', function(ev) {
+    var latString = ev.result.geometry.coordinates[1];
+    var lngString = ev.result.geometry.coordinates[0];
+    $('.mapboxgl-ctrl-geocoder--input').blur();
+    var lat = JSON.stringify(latString);
+    var lng = JSON.stringify(lngString);
+    console.log('on geocode result', lat, lng)
+    updateCoordinateInputs(lat, lng)
+    if (lat == '10.3833' && lng == '55.4000' ) {
+      $(".mapboxgl-ctrl-geocoder--input").attr('placeholder', '{{settings.geocoder_placeholder}}');
+    } else {
+      $(".mapboxgl-ctrl-geocoder--input").attr('placeholder', 'Dit specielle sted');
+    }
+  });
+  $( window ).on( "load", function() {
+    $('.mapboxgl-ctrl-geocoder--input').val('');
+  });
+  map.on('click', function(e) {
+    var lat = JSON.stringify(e.lngLat.lat);
+    var lng = JSON.stringify(e.lngLat.lng);
+    console.log('on map click', lat, lng)
+    if (geocoder.mapMarker) {
+      geocoder.mapMarker.setLngLat(e.lngLat);
+      updateCoordinateInputs(lat, lng)
+    } else {
+      var marker = new mapboxgl.Marker()
+      .setLngLat(e.lngLat)
+      .addTo(map);
+      geocoder.mapMarker = marker
+      updateCoordinateInputs(lat, lng)
+    }
+  });
+  function _convertDDToDMS(coordinate) {
+    var absolute = Math.abs(coordinate);
+    var degrees = Math.floor(absolute);
+    var minutesNotTruncated = (absolute - degrees) * 60;
+    var minutes = Math.floor(minutesNotTruncated);
+    var seconds = Math.round((minutesNotTruncated - minutes) * 60 * 100) / 100;
+    if (coordinate < 0) degrees *= -1;
+    return degrees + "°" + minutes + "'" + seconds.toFixed(2);
+  }
+  function convertDDToDMS(lat, lng) {
+    lat = Number(String(lat).replace(/° \w/, ""))
+    lng = Number(String(lng).replace(/° \w/, ""))
+    var latitude = _convertDDToDMS(lat);
+    var latitudeCardinal = lat > 0 ? "''N" : "''S";
+    var longitude = _convertDDToDMS(lng);
+    var longitudeCardinal = lng > 0 ? "''E" : "''W";
+    return {
+      latitude: latitude + latitudeCardinal,
+      longtitude: longitude + longitudeCardinal
+    }
+  }
+  function _convertDMSToDD(degrees, minutes, seconds, direction) {
+    let dd = Number(degrees) + Number(minutes) / 60 + Number(seconds) / 3600;
+    if (direction == "S" || direction == "W") {
+      dd = dd * -1;
+    }
+    return dd.toFixed(4) + "° " + (direction);
+  }
+  function convertDMSToDD(lat, lng) {
+    let latParts = lat.match(/(\d+)°(\d+)'(\d+\.?\d*)''(\w)/)
+    let longParts = lng.match(/(\d+)°(\d+)'(\d+\.?\d*)''(\w)/)
+    let latitude = _convertDMSToDD(latParts[1], latParts[2], latParts[3], latParts[4])
+    let longtitude = _convertDMSToDD(longParts[1], longParts[2], longParts[3], longParts[4])
+    return {
+      latitude: latitude,
+      longtitude: longtitude
+    }
+  }
+  function updateCoordinateInputs(lat, lng) {
+    if (lat > 0) {
+      lat = parseFloat(lat).toFixed(4) + "° N";
+    } else {
+      lat = parseFloat(lat).toFixed(4) + "° S";
+    }
+    if (lng > 0) {
+      lng = parseFloat(lng).toFixed(4) + "° E";
+    } else {
+      lng = parseFloat(lng).toFixed(4) + "° W";
+    }
+    localStorage.setItem("cuffCoordinatesLongitude", lng);
+    localStorage.setItem("cuffCoordinatesLatitude", lat);
+    if ($("#dmstoggler").is(":checked")) {
+      let dms = convertDDToDMS(lat, lng)
+      lat = dms.latitude
+      lng = dms.longtitude
+    }
+    document.getElementById('latitude').value = lat;
+    document.getElementById('longtitude').value = lng;
+  }
+  function localStorageGetLng() {
+    let lng = localStorage.getItem("cuffCoordinatesLongitude");
+    if ($("#dmstoggler").is(":checked")) {
+      lng = convertDDToDMS(0, lng).longtitude
+    }
+    return lng
+  }
+  function localStorageGetLat() {
+    let lat = localStorage.getItem("cuffCoordinatesLatitude");
+    if ($("#dmstoggler").is(":checked")) {
+      lat = convertDDToDMS(lat, 0).latitude
+    }
+    return lat
+  }
+  $("#dmstoggler").on('change', function(eventInfo) {
+    let longInput = document.getElementById("longtitude")
+    let latInput = document.getElementById("latitude")
+    if (eventInfo.target.checked) {
+      let dms = convertDDToDMS(latInput.value, longInput.value)
+      latInput.value = dms.latitude;
+      longInput.value = dms.longtitude;
+      localStorage.setItem("cuffCoordinatesLongitude", dms.longtitude);
+      localStorage.setItem("cuffCoordinatesLatitude", dms.latitude);
+    } else {
+      let dd = convertDMSToDD(latInput.value, longInput.value)
+      latInput.value = dd.latitude
+      longInput.value = dd.longtitude
+      localStorage.setItem("cuffCoordinatesLongitude", dd.longtitude);
+      localStorage.setItem("cuffCoordinatesLatitude", dd.latitude);
+    }
+    $("#dmstoggler_state").html(eventInfo.target.checked ? "DMS" : "Decimal degrees")
+  })
+  map.addControl(new mapboxgl.NavigationControl());
+  document.getElementById('geocoder').appendChild(geocoder.onAdd(map));
+</script>
