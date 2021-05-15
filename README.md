@@ -4,7 +4,7 @@
     Demo 2: https://customcuff.co/products/custom-cuff?variant=16155384283182
     Demo 3: https://bohonifty.com/products/custom-cuff?variant=31617293418532
     Demo 4: https://coordinatestore.com/products/2x-personalized-cuff
-    Demo 5: https://test-thisplace.myshopify.com/products/grafisk-koordinatplakat?variant=35281598742681
+    Demo 5: https://thisplace.dk/products/grafisk-koordinatplakat?variant=35281598742681
 
 
 # Mapbox styles
